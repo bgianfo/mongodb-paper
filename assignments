@@ -7,13 +7,11 @@ Introduction Breakdown:
 
   JOE:
    a) Describe how mongoDB uses relations and indexes
-   c) Describe how mongoDB key values and addresses 
-   insertion into the indexes
+   c) Describe how mongoDB key values and addresses insertion into the indexes
 
   BRIAN:
    1) Identify which open source product and why we decided on it.
    d) Desribe how mongoDO uses page fetching
-
 
 Limitations:
 ------------
