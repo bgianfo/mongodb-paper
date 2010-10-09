@@ -147,25 +147,25 @@ Our group has chosen to work on MongoDB for our Database Systems
 Implementation Project. MongoDB is a document oriented so called NoSQL
 database system. The database has no schema and strives to give the user as fast performance possible.
 Much of this is done through clustering/sharding and a focus on concurrent algorithms.
-MongoDB has a variaty of very unique features which set it aside from other NoSQL or document oriented databases.
+MongoDB has a variety of very unique features which set it aside from other NoSQL or document oriented databases.
 Instead of a traditional SQL syntax for interacting with the database, MongoDB uses
-a new format known as BSON (Binary Javascript Object Notation) which is very similar
-to JSON ( Javascript Object Notation ).\begin{lstlisting}
+a new format known as BSON (Binary JavaScript Object Notation) which is very similar
+to JSON ( JavaScript Object Notation ).\begin{lstlisting}
 { "title":"Blog Post", "id":25, ... }
-\end{lstlisting}The database imbeds the Mozilla SpiderMonkey javascript engine.
-Leveraging this javascript can be written, stored and excuted on the server, these
-operations are similar to stored prodecures. MongoDB also has a specification for storing
+\end{lstlisting}The database embeds the Mozilla SpiderMonkey JavaScript engine.
+Leveraging this JavaScript can be written, stored and executed on the server, these
+operations are similar to stored procedures. MongoDB also has a specification for storing
 large files under MongoDB, it is known as GridFS. GridFS is a standard for breaking up these larger
 files and storing them efficiently, a user can then query ranges of the file. For example the middle section
-of an mp3, if a user seeks forward in a song, can be retured from the database.
+of an MP3, if a user seeks forward in a song, can be returned from the database.
 
 MongoDB is rich with new and exciting features and is a completely open source project.
-The database has an active developers mailing list as well as an excilent issue tracker,
-wiki for documentation and IRC channle for help. With all of these resources and plenty
+The database has an active developers mailing list as well as an excellent issue tracker,
+wiki for documentation and IRC channel for help. With all of these resources and plenty
 of features requested on the issue tracker out group felt that MongoDB would be a great
-project to work on for the semester. The database is also gaining alot of traction in the
+project to work on for the semester. The database is also gaining a lot of traction in the
 database world as of late. MongoDB will more than likely prove to be a very useful thing
-to have working knowlege of in the future.
+to have working knowledge of in the future.
 
 \section{Database Internals}
 \subsection{Relations and Indexes}
@@ -174,6 +174,10 @@ to have working knowlege of in the future.
 \subsection{Page Fetching}
 \subsection{Query Processing and Optimizations}
 
+\section{Proposed Extensions}
+\subsection{Building Indexes In Parallel}
+\subsection{Adding Support For XPath Like Queries Of Documents}
+\subsection{Expanding Geo Spatial search from 2-Dimensions to N-Dimensions}
 \section{Citations}
 %
 % The following two commands are all you need in the
