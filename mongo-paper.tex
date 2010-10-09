@@ -44,7 +44,7 @@
   %frame=single,                   % adds a frame around the code
   tabsize=2,              % sets default tabsize to 2 spaces
   captionpos=b,                   % sets the caption-position to bottom
-  breaklines=true,        % sets automatic line breaking
+  breaklines=false,        % sets automatic line breaking
   breakatwhitespace=false,    % sets if automatic breaks should only happen at whitespace
   escapeinside={\%}{)}          % if you want to add a comment within your code
 }
@@ -101,7 +101,7 @@ Brian Gianforcaro
        \email{bjg1955@rit.edu}
 % 2nd. author
 \alignauthor
-Joseph Schrama 
+Joseph Schrama
        \affaddr{Rochester Institute Of Technology}\\
        \affaddr{Rochester, New York}\\
        \email{jfs2776@rit.edu}
@@ -144,16 +144,29 @@ Nicholas Williams
 %
 \section{Introduction}
 Our group has chosen to work on MongoDB for our Database Systems
-Implementation Project. MongoDB is a document oriented so called "NoSQL" 
-database system. The database has no schema and claims it specializes in 
-high performance, through clustering/sharding and a focus on concurrent algorithms.
-MongoDB has a variaty of very unique features which set it aside from other "NoSQL" systems.
+Implementation Project. MongoDB is a document oriented so called NoSQL
+database system. The database has no schema and strives to give the user as fast performance possible.
+Much of this is done through clustering/sharding and a focus on concurrent algorithms.
+MongoDB has a variaty of very unique features which set it aside from other NoSQL or document oriented databases.
 Instead of a traditional SQL syntax for interacting with the database, MongoDB uses
 a new format known as BSON (Binary Javascript Object Notation) which is very similar
-to JSON ( Javascript Object Notation ).
-\begin{lstlisting}
+to JSON ( Javascript Object Notation ).\begin{lstlisting}
 { "title":"Blog Post", "id":25, ... }
-\end{lstlisting}
+\end{lstlisting}The database imbeds the Mozilla SpiderMonkey javascript engine.
+Leveraging this javascript can be written, stored and excuted on the server, these
+operations are similar to stored prodecures. MongoDB also has a specification for storing
+large files under MongoDB, it is known as GridFS. GridFS is a standard for breaking up these larger
+files and storing them efficiently, a user can then query ranges of the file. For example the middle section
+of an mp3, if a user seeks forward in a song, can be retured from the database.
+
+MongoDB is rich with new and exciting features and is a completely open source project.
+The database has an active developers mailing list as well as an excilent issue tracker,
+wiki for documentation and IRC channle for help. With all of these resources and plenty
+of features requested on the issue tracker out group felt that MongoDB would be a great
+project to work on for the semester. The database is also gaining alot of traction in the
+database world as of late. MongoDB will more than likely prove to be a very useful thing
+to have working knowlege of in the future.
+
 \section{Database Internals}
 \subsection{Relations and Indexes}
 \subsection{Inserting records into the database}
@@ -170,7 +183,7 @@ to JSON ( Javascript Object Notation ).
 \bibliography{sigproc}  % sigproc.bib is the name of the Bibliography in this case
 % You must have a proper ".bib" file
 %  and remember to run:
-% latex bibtex latex latex
+% latex bibtex latex
 % to resolve all references
 %
 % ACM needs 'a single self-contained file'!
