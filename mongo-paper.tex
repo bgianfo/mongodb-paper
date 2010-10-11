@@ -220,6 +220,18 @@ preventing all other operations. The index can be built in the background,
 but with increased overhead.
 A collection can only have one index built at a particular time\cite{7}.
 \subsection{Page Fetching}
+MongoDB takes an interesting strategy towards data storage for the database.
+The database files are completely memory mapped by the kernel, this allows huge chunks and
+even the entire database Btree structure to be kept in memory.
+It can then be read back out without needing to fetch data from the disk. \cite{16}
+There is no need to have a cache to store the data being read, you have a buffer being managed
+by the Operating Systems Virtual Memory Manager. This allows MongoDB to focus on the data it self
+and not on efficiently fetching pages and overly managing disk locations. This strategy does come with
+at a price. Because of how the files are memory mapped, the logical file size limit for any database
+on a 32-bit system is just above 2 Gigabytes of data. This limit only exists on 32-bit systems, the
+logical limit for 64-bit systems is larger by a huge factor. The efficiency of the
+Virtual Memory Manager on each operating system will vary and will determine the write performance
+of the database it self.
 \subsection{Query Processing and Optimizations}
 One of MongoDB's best capabilities is its support for dynamic (ad hoc) queries, allowing it to find data without any special indexing; users can find data using any criteria.
 As mentioned in previous sections, MongoDB stores data as BSON documents, so queries are expressed as BSON documents that indicate a query pattern.
