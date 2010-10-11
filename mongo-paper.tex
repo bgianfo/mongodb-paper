@@ -44,7 +44,7 @@
   showtabs=false,                 % show tabs within strings adding particular underscores
   %frame=single,                   % adds a frame around the code
   tabsize=2,              % sets default tabsize to 2 spaces
-  captionpos=b,                   % sets the caption-position to bottom
+  captionpos=t,                   % sets the caption-position to bottom
   breaklines=false,        % sets automatic line breaking
   breakatwhitespace=false,    % sets if automatic breaks should only happen at whitespace
   escapeinside={\%}{)}          % if you want to add a comment within your code
@@ -187,6 +187,29 @@ MongoDB's indexes are B-Tree indexes (as opposed to B+Tree or B*Tree indexes).
 Indexes can be created on one or more fields, and they can built as either ascending or descending on a particular field.
 Each standard collection has a default index built on the \_id field.  Indexes can be built on fields of documents which are embedded as fields in other documents\cite{6}.
 \subsection{Inserting records into the database}
+When data is inserted into MongoDB, that data will always be in document-form.
+Documents are data structures analogous to JSON (JavaScript Object Notation), Python dictionaries, and Ruby hashes, to take just a few examples.
+The particular data structure that MongoDB utilizes is called BSON.
+BSON is a binary-encoded serialization of JSON-like documents, and is designed to be lightweight, traversable, and efficient.
+BSON is faster to scan for specific fields than JSON.
+BSON, like JSON, supports the embedding of objects and arrays within other objects and arrays.
+BSON maps readily to and from JSON and also to various data structures (such as 32-bit integer, 64-bit integer, double, string, boolean, etc.) in many programming languages.
+BSON also contains extentions that allow repeestntation of data types that are not part of the JSON specification.
+For example, BSON has a Date type and a BinData (Binary Data) type.
+
+The process for inserting records into the database is as follows:
+\begin{itemize}
+  \item Create the document
+  \begin{itemize}
+    \item d = {'author':'John Doe', 'date':new Date() }
+  \end{itemize}
+
+  \item Insert the document
+  \begin{itemize}
+    \item db.collection.insert(d)
+  \end{itemize}
+\end{itemize}
+
 \subsection{Key Values and insertion into indexes}
 By default, a command which builds an index acquires a lock on the entire database,
 preventing all other operations. The index can be built in the background,
@@ -194,7 +217,58 @@ but with increased overhead.
 A collection can only have one index built at a particular time\cite{7}.
 \subsection{Page Fetching}
 \subsection{Query Processing and Optimizations}
+One of MongoDB's best capabilities is its support for dynamic (ad hoc) queries, allowing it to find data without any special indexing; users can find data using any criteria.
+As mentioned in previous sections, MongoDB stores data as BSON documents, so queries are expressed as BSON documents that indicate a query pattern.
+For example, the query db.professors.find({'last\_name':'Raj'}) would return all of the entries in the 'professors' collection where the 'last\_name' attribute is 'Raj'.
+Query patterns may also contain:
+\begin{itemize}
+\item Multiple criteria
+ \begin{itemize}
+  \item var col = db.collection
+  \item col.find(\{'attr1':'val', 'attr2':'val', ...\})
+ \end{itemize}
+\item Modifiers
+  \begin{itemize}
+   \item var col = db.collection
+   \item col.find(\{'attr':\{\$gte:1, \$lt:10, \$in [range], ...\})
+  \end{itemize}
+\item Projections where boolean\_int represents whether the projection returns only the 'attr' specified\cite{12} or all attributes except the one specified\cite{11}
+  \begin{itemize}
+    \item var col = db.collection
+    \item col.find(\{\}, \{'attr' : boolean\_int\})
+  \end{itemize}
+\item Sorting results where the boolean\_int indicates whether the results are sorted in ascending order\cite{12} or in descending order\cite{11} based on 'attr'
+  \begin{itemize}
+    \item var col = db.collection
+    \item col.find(\{\}).sort(\{'attr' : boolean\_int\})
+  \end{itemize}
+\item Skipping results, the following skips the first 10 results of the query
+  \begin{itemize}
+    \item var col = db.collection
+    \item col.find(\{\}).skip(10)
+  \end{itemize}
+\item Limiting results only returns the first 10 results of the query
+  \begin{itemize}
+    \item var col = db.collection
+    \item col.find(\{\}).limit(10)
+  \end{itemize}
+\end{itemize}
 
+For a more exhaustive list of modifiers and result manipulators, see links\cite{11} and \cite{12} listed in 'References'.
+
+The MongoDB query optimizer generates query plans for each query submitted by a client.
+These plans are executed to return results.
+Thus, MongoDB supports ad hoc queries much like say, MySQL.
+Unlike traditional approaches to query optimization, the Mongo query optimizer is different.
+It is not cost based -- it does not model the cost of various queries.
+Instead, the optimizer simply tries different query plans and learn which ones work well.
+Of course, when the system tries a really bad plan, it may take an extremely long time to run.
+To solve this, when testing new plans, MongoDB executes multiple query plans in parallel.
+As soon as one finishes, it terminates the other executions, and the system has learned which plan is good.
+This works particularly well given the system is non-relational, which makes the space of possible query plans much smaller (as there are no joins).
+For some instances, a plan which was working well can work poorly -- for example if the data in the database has changed, or if the parameter values to the query are different.
+In this case, if the query seems to be taking longer than usual, the database will once again run the query in parallel to try different plans.
+This approach adds a little overhead, but has the advantage of being much better at worst-case performance.
 \section{Proposed Extensions}
 \subsection{Building Indexes In Parallel}
 
@@ -203,6 +277,7 @@ Different threads can be tasked to build different sub-trees which will eventual
 This is important if the indexing operation is going to block the entire database.
 It is important to take advantage of multiprocessors.
 Furthermore, JIRA ticket SERVER-676 requests this feature\cite{8}.
+I will likely need to modify the $BtreeBuilder::addKey()$ member function, which starts at line $1238$ of db/btree.cpp and $thefastBuildIndex()$ function which starts on line 1083 of db/pdfile.cpp.
 
 \subsection{XPath Like Queries Of Documents}
 XPath is the result of an effort to provide a common syntax and semantics for functionality shared between XSL Transformations (XSLT) and XPointer.
