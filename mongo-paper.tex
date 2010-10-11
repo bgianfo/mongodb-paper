@@ -28,11 +28,12 @@
 
 \documentclass{dependencies/acm_proc_article-sp}
 
+\usepackage{url}
 \usepackage{color}
 \usepackage{listings}
 \lstset{
   language=C++,             % choose the language of the code
-  basicstyle=\footnotesize,       % the size of the fonts that are used for the code
+  basicstyle=\small,       % the size of the fonts that are used for the code
   numbers=left,                   % where to put the line-numbers
   numberstyle=\footnotesize,      % the size of the fonts that are used for the line-numbers
   stepnumber=0,                   % the step between two line-numbers. If it is 1 each line will be numbered
@@ -145,12 +146,14 @@ Nicholas Williams
 \section{Introduction}
 Our group has chosen to work on MongoDB for our Database Systems
 Implementation Project. MongoDB is a document oriented so called NoSQL
-database system. The database has no schema and strives to give the user as fast performance possible.
-Much of this is done through clustering/sharding and a focus on concurrent algorithms.
-MongoDB has a variety of very unique features which set it aside from other NoSQL or document oriented databases.
+database system. The database has no schema and strives to give the user
+as fast performance possible. Much of this is done through clustering/sharding
+and a focus on concurrent algorithms. MongoDB has a variety of very unique
+features which set it aside from other NoSQL or document oriented databases.
 Instead of a traditional SQL syntax for interacting with the database, MongoDB uses
 a new format known as BSON (Binary JavaScript Object Notation) which is very similar
-to JSON ( JavaScript Object Notation ).\begin{lstlisting}
+to JSON ( JavaScript Object Notation ).
+\begin{lstlisting}
 { "title":"Blog Post", "id":25, ... }
 \end{lstlisting}The database embeds the Mozilla SpiderMonkey JavaScript engine.
 Leveraging this JavaScript can be written, stored and executed on the server, these
@@ -169,16 +172,73 @@ to have working knowledge of in the future.
 
 \section{Database Internals}
 \subsection{Relations and Indexes}
+MongoDB stores and represents relations as BSON documents\cite{1}.
+BSON is a data serialization format which stores objects as a set of key-value pairs known as a document.
+BSON documents can contain several different types of data, including integers, strings, arrays, and other documents\cite{2}.
+In MongoDB, documents are contained in sets known as collections, which are analogous to tables in a relational database\cite{3}.
+BSON documents are similar to rows in a relational table.
+As MongoDB databases do not have schemata, their relations have no explicitly defined domains.
+A collection's domain is defined by how it is treated.
+For example, an field can be added by simply adding a new document with said field, and a newly added document does not need to have all of the fields of the other documents in the collection.
+The user does not specify which fields a collection will include before documents are inserted\cite{4}.
+The C++ class mongo::BSONObj provides an abstraction of BSON object\cite{5}.
+MongoDB indexes work in a similar manner to those of most RDBMS's.
+MongoDB's indexes are B-Tree indexes (as opposed to B+Tree or B*Tree indexes).
+Indexes can be created on one or more fields, and they can built as either ascending or descending on a particular field.
+Each standard collection has a default index built on the \_id field.  Indexes can be built on fields of documents which are embedded as fields in other documents\cite{6}.
 \subsection{Inserting records into the database}
 \subsection{Key Values and insertion into indexes}
+By default, a command which builds an index acquires a lock on the entire database,
+preventing all other operations. The index can be built in the background,
+but with increased overhead.
+A collection can only have one index built at a particular time\cite{7}.
 \subsection{Page Fetching}
 \subsection{Query Processing and Optimizations}
 
 \section{Proposed Extensions}
 \subsection{Building Indexes In Parallel}
-\subsection{Adding Support For XPath Like Queries Of Documents}
-\subsection{Expanding Geo Spatial search from 2-Dimensions to N-Dimensions}
-\section{Citations}
+
+One extension we plan on adding is multi-threaded index creation.
+Different threads can be tasked to build different sub-trees which will eventually be combined.
+This is important if the indexing operation is going to block the entire database.
+It is important to take advantage of multiprocessors.
+Furthermore, JIRA ticket SERVER-676 requests this feature\cite{8}.
+
+\subsection{XPath Like Queries Of Documents}
+XPath is the result of an effort to provide a common syntax and semantics for functionality shared between XSL Transformations (XSLT) and XPointer.
+The primary purpose of XPath is to address parts of an XML document\cite{10}.
+In support of this primary purpose, it also provides basic facilities for manipulation of strings, numbers and booleans.
+XPath uses a compact, non-XML syntax to facilitate use of XPath within URIs and XML attribute values.
+XPath operates on the abstract, logical structure of an XML document, rather than its surface syntax.
+XPath gets its name from its use of a path notation as in URLs for navigating through the hierarchical structure of an XML document.
+
+The main reasoning behind adding XPath-like queries to MongoDB is the needed ability to quickly and easily find specific sub-trees in a BSON document.
+For example, if a user wishes to find entries with a specific value for a known tree structure in a collection, this can be easily accomplished using the following XPath query:
+\begin{lstlisting}
+/tree_root_node/subnode1[subnode2=value]
+\end{lstlisting}
+Natively, one would execute a BSON document query in the following form to retrieve the same data:
+\begin{lstlisting}
+{tree_root_node : { subnode1 : {subnode2 : value}}}
+\end{lstlisting}
+One huge benefit to XPath queries however, is the fact that you need not know the entire tree structure to retrieve from sub-trees, due to the inclusion of the wildcard operator.
+Therefore, if the user only knows the specific sub-tree they are searching for they can execute an XPath query such as the following:
+\begin{lstlisting}
+//*[subnode2=value]
+\end{lstlisting}
+
+
+\subsection{Expanding Geo Spatial Search}
+MongoDB already has support for two-dimensional GeoSpatial indexes.
+These can be used to find the closest documents to any given location.
+Additionally other fields can be added to a GeoSpatial query to query sub fields
+of the document with a GeoSpatial index. For example one could query all locations
+which happen to be of type "university" and find the closest ten to your location.
+However as the MongoDB JIRA ticket SERVER-691 \cite{9} requests, the ability to
+not just limit our selves to two dimensions and be able to support 3D or even N-Dimensional
+queries would be a very interesting feature. The GeoSpatial search could be used for
+3D virtual world feature storage. Another imaginable
+
 %
 % The following two commands are all you need in the
 % initial runs of your .tex file to

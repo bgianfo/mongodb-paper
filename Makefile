@@ -2,16 +2,16 @@ LATEX=latex
 BIBTEX=bibtex
 CONVERT_DVI=dvipdf
 
-default: mongo-paper paper-clean
+default: clean mongo-paper paper-clean
 
 open:
 	open mongo-paper.pdf
 
 mongo-paper: mongo-paper.tex
-	$(LATEX) mongo-paper.tex
-	#$(BIBTEX) mongo-paper.tex
-	$(LATEX) mongo-paper.tex
-	$(LATEX) mongo-paper.tex
+	$(LATEX) mongo-paper
+	$(BIBTEX) mongo-paper
+	$(LATEX) mongo-paper
+	$(LATEX) mongo-paper
 	$(CONVERT_DVI) mongo-paper.dvi
 	evince mongo-paper.pdf
 
@@ -20,6 +20,8 @@ paper-clean:
 	rm -f mongo-paper.aux
 	rm -f mongo-paper.log
 	rm -f mongo-paper.toc
+	rm -rf mongo-paper.bbl
+	rm -rf mongo-paper.blg
 	rm -rf missfont.log
 
 # Check style:
@@ -50,3 +52,4 @@ spell:
 	aspell check -t mongo-paper.tex
 
 clean: paper-clean
+	rm -rf mongo-paper.pdf
