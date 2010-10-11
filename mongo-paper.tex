@@ -97,25 +97,28 @@
 % 1st. author
 \alignauthor
 Brian Gianforcaro
-       \affaddr{Rochester Institute Of Technology}\\
-       \affaddr{Rochester, New York}\\
+       \affaddr{RIT}\\
        \email{bjg1955@rit.edu}
 % 2nd. author
 \alignauthor
 Joseph Schrama
-       \affaddr{Rochester Institute Of Technology}\\
-       \affaddr{Rochester, New York}\\
+       \affaddr{RIT}\\
        \email{jfs2776@rit.edu}
 % 3rd. author
 \alignauthor
 Nicholas Williams
-       \affaddr{Rochester Institute Of Technology}\\
-       \affaddr{Rochester, New York}\\
+       \affaddr{RIT}\\
        \email{nxw6572@rit.edu}
 }
 \maketitle
-%\begin{abstract}
-%This paper provides a sample of a \LaTeX\ document which conforms to
+\begin{abstract}
+This paper provides a breif over view of the MongoDB NoSQL data base system.
+We overview what we have discovered about how MongoDB works and describe in detail
+a selection of the database internals.
+Our database system's implementation group then describes our proposed
+extensions to MongoDB and our reasons for attempting them. A small
+section of where exactly in the MongoDB code these extensions will be executed
+is also provided under each individual proposal.
 %the formatting guidelines for ACM SIG Proceedings.
 %It complements the document \textit{Author's Guide to Preparing
 %ACM SIG Proceedings Using \LaTeX$2_\epsilon$\ and Bib\TeX}. This
@@ -132,16 +135,17 @@ Nicholas Williams
 %To make best use of this sample document, run it through \LaTeX\
 %and BibTeX, and compare this source code with the printed
 %output produced by the dvi file.
-%\end{abstract}
+\end{abstract}
 
+\footnotemark
+\footnotetext[1]{Rochester Institute Of Technology}
 %% A category with the (minimum) three required fields
-%\category{H.4}{Information Systems Applications}{Miscellaneous}
+\category{H.4}{Information Systems Applications}{Miscellaneous}
 %%%A category including the fourth, optional field follows...
-%\category{D.2.8}{Software Engineering}{Metrics}[complexity measures, performance measures]
 %
 %\terms{Theory}
-%
-%\keywords{ACM proceedings, \LaTeX, text tagging} % NOT required for Proceedings
+
+\keywords{ MongoDB, NoSQL, RIT, Database System Implementation, XPath, GeoSpatial Search, Building Index's in Parallel} % NOT required for Proceedings
 %
 \section{Introduction}
 Our group has chosen to work on MongoDB for our Database Systems
@@ -194,7 +198,7 @@ BSON is a binary-encoded serialization of JSON-like documents, and is designed t
 BSON is faster to scan for specific fields than JSON.
 BSON, like JSON, supports the embedding of objects and arrays within other objects and arrays.
 BSON maps readily to and from JSON and also to various data structures (such as 32-bit integer, 64-bit integer, double, string, boolean, etc.) in many programming languages.
-BSON also contains extentions that allow repeestntation of data types that are not part of the JSON specification.
+BSON also contains extensions that allow representation of data types that are not part of the JSON specification.
 For example, BSON has a Date type and a BinData (Binary Data) type.
 
 The process for inserting records into the database is as follows:
@@ -268,10 +272,9 @@ As soon as one finishes, it terminates the other executions, and the system has 
 This works particularly well given the system is non-relational, which makes the space of possible query plans much smaller (as there are no joins).
 For some instances, a plan which was working well can work poorly -- for example if the data in the database has changed, or if the parameter values to the query are different.
 In this case, if the query seems to be taking longer than usual, the database will once again run the query in parallel to try different plans.
-This approach adds a little overhead, but has the advantage of being much better at worst-case performance.
+This approach adds a little overhead, but has the advantage of being much better at worst-case performance. \cite{13}
 \section{Proposed Extensions}
 \subsection{Building Indexes In Parallel}
-
 One extension we plan on adding is multi-threaded index creation.
 Different threads can be tasked to build different sub-trees which will eventually be combined.
 This is important if the indexing operation is going to block the entire database.
@@ -289,14 +292,16 @@ XPath gets its name from its use of a path notation as in URLs for navigating th
 
 The main reasoning behind adding XPath-like queries to MongoDB is the needed ability to quickly and easily find specific sub-trees in a BSON document.
 For example, if a user wishes to find entries with a specific value for a known tree structure in a collection, this can be easily accomplished using the following XPath query:
+The feature was requested under the JIRA ISSUE SERVER-736 \cite{15}.
+
 \begin{lstlisting}
 /tree_root_node/subnode1[subnode2=value]
 \end{lstlisting}
 Natively, one would execute a BSON document query in the following form to retrieve the same data:
 \begin{lstlisting}
-{tree_root_node : { subnode1 : {subnode2 : value}}}
+{treeRootNode:{subnode1:{subnode2:val}}}
 \end{lstlisting}
-One huge benefit to XPath queries however, is the fact that you need not know the entire tree structure to retrieve from sub-trees, due to the inclusion of the wildcard operator.
+One huge benefit to XPath queries however, is the fact that you need not know the entire tree structure to retrieve from sub-trees, due to the inclusion of the wild card operator.
 Therefore, if the user only knows the specific sub-tree they are searching for they can execute an XPath query such as the following:
 \begin{lstlisting}
 //*[subnode2=value]
@@ -304,16 +309,26 @@ Therefore, if the user only knows the specific sub-tree they are searching for t
 
 
 \subsection{Expanding Geo Spatial Search}
-MongoDB already has support for two-dimensional GeoSpatial indexes.
+MongoDB already has support for two-dimensional geospatial indexes.
 These can be used to find the closest documents to any given location.
-Additionally other fields can be added to a GeoSpatial query to query sub fields
-of the document with a GeoSpatial index. For example one could query all locations
+Additionally other fields can be added to a geospatial query to query sub fields
+of the document with a geospatial index. For example one could query all locations
 which happen to be of type "university" and find the closest ten to your location.
 However as the MongoDB JIRA ticket SERVER-691 \cite{9} requests, the ability to
 not just limit our selves to two dimensions and be able to support 3D or even N-Dimensional
-queries would be a very interesting feature. The GeoSpatial search could be used for
-3D virtual world feature storage. Another imaginable
+queries would be a very interesting feature. The geospatial search could be used for
+3D virtual world feature storage. Another imaginable use case would be for tracking air plains
+in the sky and making sure they are at least $d$ distance away from one other at all times.
+This could be implemented using four dimensional geospatial where you have three of the dimensions
+represent the point in 3D space, and the final dimension representing time. Using N-Dimensional
+geospatial querying a user could query all four dimensions. Professionally some of us have done geocentric mapping of
+data, a database which supports these kind of queries would be incredibly powerful and would open up a lot of new
+possible real time applications.
 
+This work will most likely occur in the db/geo folder of the database under a new module named "nd.cpp". We will
+attempt to model the module from the existing 2D implementation, it should be general enough to simply replace
+the 2D implementation since it will be N-dimensions instead of a fixed number. A number of unit tests will also
+need to be added to the jstests/geo folder to make sure the implementation is sound.
 %
 % The following two commands are all you need in the
 % initial runs of your .tex file to
