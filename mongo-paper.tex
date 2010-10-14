@@ -195,6 +195,7 @@ MongoDB indexes work in a similar manner to those of most RDBMS's.
 MongoDB's indexes are B-Tree indexes (as opposed to B+Tree or B*Tree indexes).
 Indexes can be created on one or more fields, and they can built as either ascending or descending on a particular field.
 Each standard collection has a default index built on the \_id field.  Indexes can be built on fields of documents which are embedded as fields in other documents\cite{6}.
+\newpage
 \subsection{Inserting Records Into The Database}
 When data is inserted into MongoDB, that data will always be in document-form.
 Documents are data structures analogous to JSON (JavaScript Object Notation), Python dictionaries, and Ruby hashes, to take just a few examples.
@@ -275,7 +276,7 @@ Query patterns may also contain:
   \end{itemize}
 \end{itemize}
 
-For a more exhaustive list of modifiers and result manipulators, see links\cite{11} and \cite{12} listed in 'References'.
+For a more exhaustive list of modifiers and result manipulators, see links\cite{11} and\cite{12} listed in 'References'.
 
 The MongoDB query optimizer generates query plans for each query submitted by a client.
 These plans are executed to return results.
@@ -293,11 +294,11 @@ This approach adds a little overhead, but has the advantage of being much better
 \section{Proposed Extensions}
 \subsection{Building Indexes In Parallel}
 One extension we plan on adding is multi-threaded index creation.
-Different threads can be tasked to build different sub-trees which will eventually be combined. 
-We will likely need to modify the $BtreeBuilder::addKey()$ member function, which starts at line 1238 of db/btree.cpp.  We will certainly need to modify the $fastBuildIndex()$ function which starts on line 1083 of db/pdfile.cpp.  This function deals with foreground index creation and uses a bottom-up approach which is not identical to that used by the background index creation process \cite{17}.  Our enhancements will be limited to the foreground index creation process.  The bottom-up approach sorts the keys and calculates the number of keys (see lines 1097 through 1187 of db/pdfile.cpp).  This will greatly facilitate the appropriation of key subsets to the threads. 
+Different threads can be tasked to build different sub-trees which will eventually be combined.
+We will likely need to modify the $BtreeBuilder::addKey()$ member function, which starts at line 1238 of db/btree.cpp.  We will certainly need to modify the $fastBuildIndex()$ function which starts on line 1083 of db/pdfile.cpp.  This function deals with foreground index creation and uses a bottom-up approach which is not identical to that used by the background index creation process\cite{17}.  Our enhancements will be limited to the foreground index creation process.  The bottom-up approach sorts the keys and calculates the number of keys (see lines 1097 through 1187 of db/pdfile.cpp).  This will greatly facilitate the appropriation of key subsets to the threads. 
 
-Multi-threaded index creation is important if the foreground indexing operation locks the entire database.  The background indexing operation is not much better, as it does not allow for further operations to be begun from the invoking shell session and it is slower than the foreground process \cite{17}.  It is always important to take advantage of multiprocessing.
-Furthermore, JIRA ticket SERVER-676 requests this feature \cite{8}.
+Multi-threaded index creation is important if the foreground indexing operation locks the entire database.  The background indexing operation is not much better, as it does not allow for further operations to be begun from the invoking shell session and it is slower than the foreground process\cite{17}.  It is always important to take advantage of multiprocessing.
+Furthermore, JIRA ticket SERVER-676 requests this feature\cite{8}.
 
 \subsection{XPath Like Queries Of Documents}
 XPath is the result of an effort to provide a common syntax and semantics for functionality shared between XSL Transformations (XSLT) and XPointer.
