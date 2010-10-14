@@ -319,6 +319,7 @@ Therefore, if the user only knows the specific sub-tree they are searching for t
 //*[subnode2=value]
 \end{lstlisting}
 
+As mentioned in the issue tracker, the first step to implementing this feature will be adding the ability to use a wildcard operator. Once the wildcard operator is available, implementing XPath queries should only be a matter of converting the XPath query to a BSON document query and passing it along to the default querying mechanism. The specific files that I will likely be editing are btree.cpp (starting with line 482), pdfile.cpp (starting with line 620), and dbhelpers.cpp (starting with line 160).
 
 \subsection{Expanding Geo Spatial Search}
 MongoDB already has support for two-dimensional geospatial indexes.
