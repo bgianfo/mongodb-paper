@@ -112,9 +112,9 @@ Nicholas Williams \\
 }
 \maketitle
 \begin{abstract}
-This paper provides a brief over view of the MongoDB NoSQL data base system.
+This paper provides a brief overview of the MongoDB NoSQL database system.
 We overview what we have discovered about how MongoDB works and describe in detail
-a selection of the database internals.
+a set of improvements to the database internals.
 Our database system's implementation group then describes our proposed
 extensions to MongoDB and our reasons for attempting them. A small
 section of where exactly in the MongoDB code these extensions will be executed
@@ -150,33 +150,34 @@ is also provided under each individual proposal.
 
 \section{Introduction}
 Our group has chosen to work on MongoDB for our Database Systems
-Implementation Project. MongoDB is a document oriented so called NoSQL
-database system. The database has no schema and strives to give the user
-as fast performance possible. Much of this is done through clustering/sharding
+Implementation Project. MongoDB is a document oriented so-called NoSQL
+database system. MongoDB databases have no schemata and strive to give the user
+the fastest performance possible. Much of this is done through clustering/sharding
 and a focus on concurrent algorithms. MongoDB has a variety of very unique
-features which set it aside from other NoSQL or document oriented databases.
+features which set it apart from other NoSQL or document oriented databases.
 Instead of a traditional SQL syntax for interacting with the database, MongoDB uses
 a new format known as BSON (Binary JavaScript Object Notation) which is very similar
 to JSON ( JavaScript Object Notation ).
 \begin{lstlisting}
+
 { "title":"Blog Post", "id":25, ... }
 \end{lstlisting}
-
 The database kernel and the tools built for interacting with MongoDB are written in
-C++. The kernel and tools heavy utilize object oriented design patterns.
-However the database embeds the Mozilla SpiderMonkey JavaScript engine.
-Leveraging this JavaScript can be written, stored and executed on the server, these
+C++. The kernel and tools heavily utilize object oriented design patterns.
+However, the database embeds the Mozilla SpiderMonkey JavaScript engine.
+Using this engine JavaScript can be written, stored and executed on the database server; these
 operations are similar to stored procedures. MongoDB also has a specification for storing
-large files under MongoDB, it is known as GridFS. GridFS is a standard for breaking up these larger
-files and storing them efficiently, a user can then query ranges of the file. For example the middle section
-of an MP3, if a user seeks forward in a song, can be returned from the database.
+large files under MongoDB, known as GridFS. GridFS is a standard for breaking up these larger
+files and storing them efficiently, a user can then query ranges of the file. For example if the
+database is storing a large MP3 file, the user can seek to the middle of it and the database can
+efficiently seek to the relevant section.
 
 MongoDB is rich with new and exciting features and is a completely open source project.
 The database has an active developers mailing list as well as an excellent issue tracker,
-wiki for documentation and IRC channel for help. With all of these resources and plenty
-of features requested on the issue tracker out group felt that MongoDB would be a great
-project to work on for the semester. The database is also gaining a lot of traction in the
-database world as of late. MongoDB will more than likely prove to be a very useful thing
+wiki for documentation and IRC channel for help. With all of these resources and
+the many features requested on the issue tracker, our group felt that MongoDB would be a great
+project to work on this quarter. The database has also been gaining a lot of traction in the
+database world. MongoDB will more than likely prove to be a very useful product
 to have working knowledge of in the future.
 
 \section{Database Internals}
@@ -188,14 +189,13 @@ In MongoDB, documents are contained in sets known as collections, which are anal
 BSON documents are similar to rows in a relational table.
 As MongoDB databases do not have schemata, their relations have no explicitly defined domains.
 A collection's domain is defined by how it is treated.
-For example, an field can be added by simply adding a new document with said field, and a newly added document does not need to have all of the fields of the other documents in the collection.
+For example, a field can be added by simply adding a new document with said field ( a newly added document does not need to have all of the fields of the other documents in the collection ).
 The user does not specify which fields a collection will include before documents are inserted\cite{4}.
-The C++ class $mongo::BSONObj$ provides an abstraction of BSON object\cite{5}.
+The C++ class mongo::BSONObj provides an abstraction of BSON object\cite{5}.
 MongoDB indexes work in a similar manner to those of most RDBMS's.
 MongoDB's indexes are B-Tree indexes (as opposed to B+Tree or B*Tree indexes).
 Indexes can be created on one or more fields, and they can built as either ascending or descending on a particular field.
 Each standard collection has a default index built on the \_id field.  Indexes can be built on fields of documents which are embedded as fields in other documents\cite{6}.
-\newpage
 \subsection{Inserting Records Into The Database}
 When data is inserted into MongoDB, that data will always be in document-form.
 Documents are data structures analogous to JSON (JavaScript Object Notation), Python dictionaries, and Ruby hashes, to take just a few examples.
@@ -228,14 +228,14 @@ A collection can only have one index built at a particular time\cite{7}.
 \subsection{Page Fetching}
 MongoDB takes an interesting strategy towards data storage for the database.
 The database files are completely memory mapped by the kernel, this allows huge chunks and
-even the entire database Btree structure to be kept in memory.
+even the entire database B-tree structure to be kept in memory.
 It can then be read back out without needing to fetch data from the disk\cite{16}.
-There is no need to have a cache to store the data being read, you have a buffer being managed
-by the Operating Systems Virtual Memory Manager. This allows MongoDB to focus on the data it self
-and not on efficiently fetching pages and overly managing disk locations. This strategy does come with
+There is no need to have a cache to store the data being read, a buffer is managed
+by the Operating System's Virtual Memory Manager. This allows MongoDB to focus on the data itself
+and not on efficiently fetching pages and micromanaging disk locations. This strategy does come with
 at a price. Because of how the files are memory mapped, the logical file size limit for any database
 on a 32-bit system is just above 2 Gigabytes of data. This limit only exists on 32-bit systems, the
-logical limit for 64-bit systems is larger by a huge factor. The efficiency of the
+logical limit for 64-bit systems is significantly larger. The efficiency of the
 Virtual Memory Manager on each operating system will vary and will determine the write performance
 of the database it self.
 \subsection{Query Processing And Optimizations}
@@ -280,15 +280,15 @@ For a more exhaustive list of modifiers and result manipulators, see links\cite{
 
 The MongoDB query optimizer generates query plans for each query submitted by a client.
 These plans are executed to return results.
-Thus, MongoDB supports ad hoc queries much like say, MySQL.
-Unlike traditional approaches to query optimization, the Mongo query optimizer is different.
-It is not cost based -- it does not model the cost of various queries.
+Thus, MongoDB supports ad hoc queries much like MySQL for example.
+Unlike traditional approaches to query optimization, the Mongo query optimizer is not cost based -- it does not model the cost of various queries.
 Instead, the optimizer simply tries different query plans and learn which ones work well.
 Of course, when the system tries a really bad plan, it may take an extremely long time to run.
 To solve this, when testing new plans, MongoDB executes multiple query plans in parallel.
 As soon as one finishes, it terminates the other executions, and the system has learned which plan is good.
 This works particularly well given the system is non-relational, which makes the space of possible query plans much smaller (as there are no joins).
-For some instances, a plan which was working well can work poorly -- for example if the data in the database has changed, or if the parameter values to the query are different.
+For some instances, a plan which has worked well in the past can work poorly.
+For example if the data in the database has changed, or if the parameter values to the query are different.
 In this case, if the query seems to be taking longer than usual, the database will once again run the query in parallel to try different plans.
 This approach adds a little overhead, but has the advantage of being much better at worst-case performance\cite{13}.
 \section{Proposed Extensions}
@@ -313,19 +313,22 @@ For example, if a user wishes to find entries with a specific value for a known 
 The feature was requested under the JIRA ISSUE SERVER-736\cite{15}.
 
 \begin{lstlisting}
+
 /tree_root_node/subnode1[subnode2=value]
 \end{lstlisting}
 Natively, one would execute a BSON document query in the following form to retrieve the same data:
 
 \begin{lstlisting}
+
 {treeRootNode:{subnode1:{subnode2:val}}}
 \end{lstlisting}
-One huge benefit to XPath queries however, is the fact that you need not know the entire tree structure to retrieve from sub-trees, due to the inclusion of the wild card operator.
+One huge benefit to XPath queries, however, is the fact that you need not know the entire tree structure to retrieve from sub-trees, due to the inclusion of the wild card operator.
 Therefore, if the user only knows the specific sub-tree they are searching for they can execute an XPath query such as the following:
 
 
 \begin{center}
 \begin{lstlisting}
+
 //*[subnode2=value]
 \end{lstlisting}
 \end{center}
@@ -340,18 +343,17 @@ which happen to be of type "university" and find the closest ten to your locatio
 However as the MongoDB JIRA ticket SERVER-691\cite{9} requests, the ability to
 not just limit our selves to two dimensions and be able to support 3D or even N-Dimensional
 queries would be a very interesting feature. The geospatial search could be used for
-3D virtual world feature storage. Another imaginable use case would be for tracking air plains
-in the sky and making sure they are at least $d$ distance away from one other at all times.
-This could be implemented using four dimensional geospatial where you have three of the dimensions
+3D virtual world feature storage. Another potential use case would be the tracking of air planes
+in the sky to make sure they are at least a $d$ distance away from one other.
+This could be implemented using a four dimensional geospatial index where three of the dimensions
 represent the point in 3D space, and the final dimension representing time. Using N-Dimensional
-geospatial querying a user could query all four dimensions. Professionally some of us have done geocentric mapping of
-data, a database which supports these kind of queries would be incredibly powerful and would open up a lot of new
-possible real time applications.
+geospatial querying a user could query all four dimensions. Professionally, some of us have done geocentric mapping of
+data. A database which supports these kind of queries would be incredibly powerful and would open up many
+potential real time applications.
 
-This work will most likely occur in the db/geo folder of the database under a new module named "nd.cpp". We will
-attempt to model the module from the existing 2D implementation, it should be general enough to simply replace
-the 2D implementation since it will be N-dimensions instead of a fixed number. A number of unit tests will also
-need to be added to the jstests/geo folder to make sure the implementation is sound.
+This work will most likely occur in the db/geo folder of the database under a new module named "nd.cpp". The new N-Dimensional
+implentenatin will be modeled after the existing 2D implementation, it will be general enough to then replace
+the 2D implementation. A number of unit tests will also need to be added to the jstests/geo folder to make sure the implementation is sound.
 \newpage
 %
 % The following two commands are all you need in the
