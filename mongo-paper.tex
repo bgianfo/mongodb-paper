@@ -30,6 +30,7 @@
 
 \usepackage{url}
 \usepackage{color}
+\usepackage{verbatim}
 \usepackage{listings}
 \lstset{
   language=C++,             % choose the language of the code
@@ -136,7 +137,7 @@ is also provided under each individual proposal.
 %and BibTeX, and compare this source code with the printed
 %output produced by the dvi file.
 \end{abstract}
-
+u
 %% A category with the (minimum) three required fields
 \category{H.4}{Information Systems Applications}{Miscellaneous}
 %%%A category including the fourth, optional field follows...
@@ -334,26 +335,126 @@ Therefore, if the user only knows the specific sub-tree they are searching for t
 \end{center}
 As mentioned in the issue tracker, the first step to implementing this feature will be adding the ability to use a wildcard operator. Once the wildcard operator is available, implementing XPath queries should only be a matter of converting the XPath query to a BSON document query and passing it along to the default querying mechanism. The specific files that I will likely be editing are btree.cpp (starting with line 482), pdfile.cpp (starting with line 620), and dbhelpers.cpp (starting with line 160).
 
-\subsection{Expanding Geo Spatial Search}
-MongoDB already has support for two-dimensional geospatial indexes.
+\subsection{Expanding Geo-spatial Search}
+MongoDB already has support for two-dimensional geo-spatial indexes.
 These can be used to find the closest documents to any given location.
-Additionally other fields can be added to a geospatial query to query sub fields
-of the document with a geospatial index. For example one could query all locations
-which happen to be of type "university" and find the closest ten to your location.
+Additionally, one can query for all points inside a bounding shape. (currently
+only a bounding rectangle and a bounding circle are supported). As JIRA ticket
+SERVER-772\cite{18} indicates it would be very useful to have the ability to
+query for points inside any polygon.
+
+The geo-spatial API for MongoDB is very general, the existing ``\$box'' and ``\$circle''
+are implemented as plugins on top of the API.
+This work will most likely occur in the db/geo/2d.cpp module of the database. The new n-point polygon
+search should be modeled after the existing ``box'' and ``circle'' searches. It should be as straight foreword
+as adding a new polygon plugin class and registering it as a command to the database. Additional code will most
+likely need to be written to support the polygon operations.
+A number of unit tests will also need to be added to the jstests/geo folder to make sure the implementation is sound.
+
+\subsection{User Authentication}
+Currently MongoDB has no way to tell if a client is currently authenticated
+to a MongoDB instance. This issue is outlined in JIRA ticket SERVER-1698\cite{19}.
+We thought this issue would be a relatively simple thing to implement and would be
+a good way to get started with working on the MongoDB database engine code.
+
+The majority of the code will be added to the db/security\_commands.cpp module.
+It should be a fairly straight foreword addition, a new database command will be
+added which uses the existing isAuthorized method from the database AuthorizationInfo
+class. The command will simply report the result of this command back to the user.
+To go along with the database command, a accompanying mongo client command will be
+added to the shell/db.js module. This will give the user a convenient way to query
+if the client is authenticated to a database. The use will be able to call this
+with a syntax similar to:
+\begin{lstlisting}
+  db.isAuthenticated()
+\end{lstlisting}
+
+
+\newpage
+
+\section{Revisions}
+
+\subsection{Expanding Geo Spatial Search}
+
+Originally, our paper listed one of our desired features as implementing N-Dimensional
+Geo-spatial Indexes to MongoDB.
+\begin{quote}
 However as the MongoDB JIRA ticket SERVER-691\cite{9} requests, the ability to
 not just limit our selves to two dimensions and be able to support 3D or even N-Dimensional
-queries would be a very interesting feature. The geospatial search could be used for
+queries would be a very interesting feature. The geo-spatial search could be used for
 3D virtual world feature storage. Another potential use case would be the tracking of air planes
 in the sky to make sure they are at least a $d$ distance away from one other.
-This could be implemented using a four dimensional geospatial index where three of the dimensions
+This could be implemented using a four dimensional geo-spatial index where three of the dimensions
 represent the point in 3D space, and the final dimension representing time. Using N-Dimensional
-geospatial querying a user could query all four dimensions. Professionally, some of us have done geocentric mapping of
-data. A database which supports these kind of queries would be incredibly powerful and would open up many
-potential real time applications.
+geo-spatial querying a user could query all four dimensions.
+\end{quote}
+As our team worked on our features it became apparent that the N-Dimensonal Geo
+Spatial Search was far too ambitious of a project for our alloted time.
+N-Dimensional data would require modifying the database to use KD-Trees,
+R-trees, Quad-trees or other similar non B-tree based storage data structures.
+Given the high coupling of the MongoDB code, this task in itself would take
+at least a month to build and test correctly.
+If we had tried to implement the actual query support, we would not have been able
+to complete any of our deliverables on time.
 
-This work will most likely occur in the db/geo folder of the database under a new module named "nd.cpp". The new N-Dimensional
-implentenatin will be modeled after the existing 2D implementation, it will be general enough to then replace
-the 2D implementation. A number of unit tests will also need to be added to the jstests/geo folder to make sure the implementation is sound.
+Since the team was still interested in this area we decided to change the feature to
+implementing N-point polygon searches using the existing 2D geo-spatial API.
+
+\subsection{User Authentication}
+This section was added since our initial submission, it was a very small simple feature to implement
+and we thought it would be a good addition to the database. MongoDB can have some
+odd rules about when a database has authentication turned on or not. Without
+this feature there are times where you just don't know why the client isn't working.
+
+\section{Addendums}
+
+\subsection{Parallel Index Building}
+We will not be using more threads than the size of the fan out of a B-tree node
+since this will require multiple new levels in the final B-tree. Taking advantage of
+the ability to have more threads than the number of keys in a node would require
+a large number of cores on the system. Furthermore, it would be much more difficult
+to implement.
+
+\subsection{XPath}
+It appears our goal to include support for XPath-like queries was somewhat
+overzealous. The sheer multitude of query commands supported by XPath
+exceeds our capabilities for the allotted time frame. Therefore, we will be
+adding support for wild card queries and as many XPath features as we can
+manage before the project due date. At a minimum, we expect to have support
+for basic path expressions (using forward slashes instead of dot notation).
+Time permitting, we will also include the ability to use predicates in the
+path expression instead of as an argument for the query. For example, one
+would be able to use the expression
+\begin{lstlisting}
+
+db.zoo.find({"/animal/panda[name='Burny']"})
+\end{lstlisting}
+instead of
+\begin{lstlisting}
+
+db.zoo.find({"/animal/panda/name':'Burny"})
+\end{lstlisting}
+to find a panda named Burny, or
+\begin{lstlisting}
+
+db.zoo.find({"/animal/monkey[3]"})
+\end{lstlisting}
+instead of
+\begin{lstlisting}
+
+db.zoo.find({
+  "/animal/monkey":{$exists:true}
+}).skip(2).limit(1)
+\end{lstlisting}
+to find the
+third monkey in the database. As is apparent by the aforementioned
+examples, adding the ability to include predicates in the path expression
+would be extremely beneficial; it would make performing queries far more
+intuitive.
+
+
+
+
 \newpage
 %
 % The following two commands are all you need in the
