@@ -2,10 +2,19 @@ LATEX=latex
 BIBTEX=bibtex
 CONVERT_DVI=dvipdf
 
+BUILD_TYPE := $(shell uname)
+
+ifeq ($(BUILD_TYPE), Darwin)
+  VIEWER := open 
+else
+  VIEWER := evince 
+endif
+
 default: clean final-paper paper-clean
 
 open:
-	evince final-paper.pdf
+	@echo $(BUILD_TYPE)
+	$(VIEWER) final-paper.pdf
 
 final-paper: final-paper.tex
 	$(LATEX)  final-paper
@@ -13,7 +22,7 @@ final-paper: final-paper.tex
 	$(LATEX)  final-paper
 	$(LATEX)  final-paper
 	$(CONVERT_DVI) final-paper.dvi
-	evince final-paper.pdf
+	$(VIEWER) final-paper.pdf
 
 paper-clean:
 	rm -f *.dvi
@@ -38,6 +47,9 @@ proof:
 detex:
 	@detex final-paper.tex > .detex
 
+
+test:
+	@echo $(shell uname)
 
 diction: detex
 	diction -L en -b -s .detex | fmt

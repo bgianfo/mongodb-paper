@@ -13,7 +13,7 @@ mongo-paper: mongo-paper.tex
 	$(LATEX) mongo-paper
 	$(LATEX) mongo-paper
 	$(CONVERT_DVI) mongo-paper.dvi
-	evince mongo-paper.pdf
+	open mongo-paper.pdf
 
 paper-clean:
 	rm -f mongo-paper.dvi
