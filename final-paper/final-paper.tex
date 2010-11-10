@@ -209,6 +209,51 @@ We then discovered a message board posting which stated that MongoDB does not cu
 Given this, it would be virtually impossible to finish this extension.)
 
 \subsection{Polygon Geospatial Seach}
+\subsection{Support for XPath-like Queries}
+XPath is a very common query syntax for Document based structures. Since MongoDB uses a document-oriented data structure (BSON) for its database, it is only logical that MongoDB support XPath-like queries. The first step in adding support for XPath-like queries was adding the ability to use wildcards for sub-objects in the document hierarchy. This allows for the user to search a document for specific child objects-or nodes, as they are referred to in XPath-without specifying all its ancestors. For example, if you had a database containing the entries
+
+{ zoo : { location : { animal : { type : "zebra" , age : 0 } } } }
+
+and
+
+{ zoo : { location : { animal : { type : "rhino" , age: 0 } } } }
+
+in a collection named 'collection' and you wanted to find all animals in your database that are newborns (age equals 0), regardless of their location, you could find them with the wildcard query:
+
+db.collection.find( { "zoo.*.animals.age" : 0 } );
+
+This becomes increasingly beneficial as you develop larger and more complex data objects, since you can substitute any number of levels in the hierarchy with wildcards. The next step in adding support for XPath-like queries was allowing the user to pass said queries into the shell, as it currently only communicates with the server using BSON objects. To simplify things, we chose to convert the XPath query into the equivalent BSON object on the client side and simply pass that along to the server, allowing MongoDB to use its built-in mechanisms for querying the database. Given the time constraint for the project, we were not able to include an XPath-equivalent for the multitude of XPath and Mongo shell commands. We were, however, able to incorporate the following for our Phase 3 release:
+
+"	The use of XPath slash notation (represents object hierarchy in terms of absolute paths)
+"	A number of comparators (>, >=, =, <, <=, !=)
+"	The 'or' and 'and' operators (expressed as ' or ', ' and ', |, &&)
+"	Returning indexed results-eliminating the need for Mongo's skip and limit functions in most cases
+
+The greatest difficulties we faced with this part of the project was adding support for wildcard queries and finding the appropriate entry point for inserting our code to allow for, and convert from, XPath queries in the shell. Once we overcame these challenges, it was a simple matter of parsing the user's input.
+
+The following are examples of typical MongoDB queries followed by their XPath equivalent.[1]
+
+Return the fourth animal in the zoo:
+db.test.find( { "zoo.animal" : { $exists : true } } ).skip( 3 ).limit( 1 );
+db.test.find( "/zoo/animal[4]" );
+
+Return all animals in the zoo of type 'giraffe':
+db.test.find( { "zoo.animal.type" : "giraffe" } );
+db.test.find( "/zoo/animal/type['giraffe']" );
+
+Return all animals in the zoo of type 'rhino' or of type 'zebra':
+db.test.find( { $or : [ { "zoo.animal.type" : "rhino" } , { "zoo.animal.type" : "zebra" } ] } );
+db.test.find( "/zoo/animal/type['rhino'] | /zoo/animal/type['zebra']" );
+
+Return all animals in the zoo with age >= 5:
+db.test.find( { "zoo.animal.age" : { $gte : 5 } );
+db.test.find( "/zoo/animal/age[>=5]" );
+
+Return all animals in the zoo that are pandas and not male:
+db.test.find( { "zoo.animal.type" : "panda", "zoo.animal.gender" : { $ne : "male" } } );
+db.test.find( "/zoo/animal/type['panda'] and /zoo/animal/gender[!='male']" );
+
+[1] Uses sample database set up using the build-database file specified in the P3 README
 
 \subsection{User Authentication Verification}
 Currently in MongoDB user authentication has one small but very noticable flaw in it's design.
