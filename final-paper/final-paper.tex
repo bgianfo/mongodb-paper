@@ -55,7 +55,7 @@
 
 \begin{document}
 
-\title{ Results Of Our Efforts To Improved MongoDB }
+\title{ Results Of Our Efforts To Improve MongoDB }
 %
 % You need the command \numberofauthors to handle the 'placement
 % and alignment' of the authors beneath the title.
@@ -114,16 +114,16 @@ Nicholas Williams \\
 }
 \maketitle
 \begin{abstract}
-MongoDB is a state of the art document oriented database that
+MongoDB is a state of the art document-oriented database that
 has emerged out of the NoSQL movement. MongoDB is scalable and
 focuses on high performance. Although the database is packed with features,
-some area's of it's implementation and interface leave's something to be
+some areas of its implementation and interface leaves something to be
 desired. We present multiple significant modifications to the MongoDB project
 which enhance usability and overall functionality. Our enhancements range from
-the area of geoSpatial search, to user authentication, and even expanding querying
-syntax to support XPath like syntax.
-We describe our success's as well as our failures in our journey to improve this
-``Humongous'' database.
+the areas of Geo-spatial searching, to user authentication and an expanded query
+syntax to support XPath-like queries. 
+We describe our successes as well as our failures in our attempts to improve this
+``humongous'' database.
 %the formatting guidelines for ACM SIG Proceedings.
 %It complements the document \textit{Author's Guide to Preparing
 %ACM SIG Proceedings Using \LaTeX$2_\epsilon$\ and Bib\TeX}. This
@@ -148,112 +148,115 @@ We describe our success's as well as our failures in our journey to improve this
 %
 %\terms{Theory}
 
-\keywords{ MongoDB, NoSQL, RIT, Database System Implementation, XPath, GeoSpatial Search, Building Index's in Parallel} % NOT required for Proceedings
+\keywords{ MongoDB, NoSQL, RIT, Database System Implementation, XPath, Geo-spatial Search, Building Indexes in Parallel} % NOT required for Proceedings
 %
 %\footnotetext[1]{NoSQL databases, also known as structured storage are known for not requiring a fixed table schema and often avoid join operations. The thing that
 % links them together is there use of alternate query languages from SQL.}
 
 \section{Introduction}
 Our group has chosen to work on MongoDB 
-\footnote{MongoDB is an open source project which is produced by the 10gen corperation.
+\footnote{MongoDB is an open source project which is produced by the 10Gen Inc.
           Development is done in the open and the company sells suport and infrastructure for profit. }
           for our Database Systems
-Implementation Project. MongoDB is a document oriented so-called NoSQL 
-\footnote{ NoSQL is a relatively new term, which describes a family of databases that differ from the classical relational database managment system design and implementation. NoSQL databases are often schema-less and avoid join like operations for performance reasons }
+Implementation Project. MongoDB is a document-oriented so-called NoSQL 
+\footnote{ NoSQL is a relatively new term, which describes a family of databases that differ from the classical relational database managment system design and implementation. NoSQL databases are often schema-less and avoid join-like operations for performance reasons. }
 database system. MongoDB databases have no schemata and strive to give the user
 the fastest performance possible. Much of this is done through clustering/sharding
 and a focus on concurrent algorithms. MongoDB has a variety of very unique
-features which set it apart from other NoSQL or document oriented databases.
+features which set it apart from other NoSQL or document-oriented databases.
 Instead of a traditional SQL syntax for interacting with the database, MongoDB uses
-a new format known as BSON (Binary JavaScript Object Notation) which is very similar
+a data representation known as BSON (Binary JavaScript Object Notation), which is very similar
 to JSON ( JavaScript Object Notation ).
 %\begin{lstlisting}
 %
 %{ "title":"Blog Post", "id":25, ... }
 %\end{lstlisting}
 The database kernel and the tools built for interacting with MongoDB are written in
-C++. The kernel and tools heavily utilize object oriented design patterns.
+C++ and JavaScript. The kernel and tools heavily utilize object-oriented design patterns.
 However, the database embeds the Mozilla SpiderMonkey JavaScript engine.
-Using this engine JavaScript can be written, stored and executed on the database server; these
+Using this engine, JavaScript code can be written, stored and executed on the database server; these
 operations are similar to stored procedures. MongoDB also has a specification for storing
-large files under MongoDB, known as GridFS. GridFS is a standard for breaking up these larger
-files and storing them efficiently, a user can then query ranges of the file. For example if the
+large files, known as GridFS. GridFS is a standard for breaking up these larger
+files and storing them efficiently--a user can then query ranges of the file. For example, if the
 database is storing a large MP3 file, the user can seek to the middle of it and the database can
 efficiently seek to the relevant section.
 
 MongoDB is rich with new and exciting features and is a completely open source project.
 The database has an active developers mailing list as well as an excellent issue tracker,
-wiki for documentation and IRC channel for help. With all of these resources and
+a wiki for documentation, and an IRC channel for help. With all of these resources and
 the many features requested on the issue tracker, our group felt that MongoDB would be a great
-project to work on this quarter. The database has also been gaining a lot of traction in the
+project to work on this quarter. The database has also been gaining a lot of attention in the
 database world. MongoDB will more than likely prove to be a very useful product
 to have working knowledge of in the future.
 
-\section{Results Of Our Improvements}
+
+\section{Results Of Our Efforts}
 \subsection{Parallel Index Building}
 In MongoDB, indexes are represented using B-Trees.
-There exists a foreground index build operation and a "background" index build operation.
+There exists a "foreground" index build operation and a "background" index build operation.
 The former locks the entire database while the latter locks the shell from which the command was issued (but does not lock the entire database).
 Due to these limitations, it seemed that multi-threading an index build operation would be beneficial.
 When the foreground build operation is used, the B-Tree is bulk-loaded and built from the bottom up; the background build operation uses a slower technique\cite{1}.
 The foreground operation begins by sorting the keys to make up the leaf level and then building the tree upwards from that level.
-We predicted that we would be able to split the sorted keys between the threads and have each thread build a sub-tree.
+We predicted that we would be able to split the sorted keys between the threads and then have each thread build a sub-tree.
 We intended for the sub-trees to be combined together into the final tree once all of the threads had finished.
 Because of this opportunity and the fact that the foreground operation seemed more useful than the background operation, we elected to only parallelize the foreground operation.
+
 To merge the sub-trees back together, we attempted to adapt the algorithm used to build new levels in the B-Tree.
 This approach allowed for the possibility of building more than one level on top of the sub-trees in order to form the final tree.
 This was significantly complicated, especially considering the lack of commenting in the original code.
-The latest attempt at this appears in a version of IndexChunkBuilder.mergeIndexSubTrees() which starts at line 1142 of db/pdfile.cpp.old.
+The latest attempt at this appears in a version of the mergeIndexSubTrees() function (of the IndexChunkBuilder class) which starts at line 1142 of db/pdfile.cpp.old.
 We were unable to get this algorithm to merge the sub-trees.
 We then attempted to perform the merge while only adding a single new level with a root node.
-The code which was to perform this task appears in IndexChunkBuilder.mergeIndexSubTrees( This function starts at line 1148 of db/pdfile.cpp.
-It would require an exceptionally large data set and an exceptional large number of threads of execution in order to take advantage of the earlier approach.
+The code which was to perform this task appears in IndexChunkBuilder::mergeIndexSubTrees(). This function starts at line 1148 of db/pdfile.cpp.
+It would require an exceptionally large data set and an exceptionally large number of threads of execution in order to take advantage of the earlier approach.
 Whenever an index would be built, strange assertion statements would fail (e.g. assert(this) in an instance member).
 Profiling indicated that this was happening before our attempt to merge the sub-trees together, while the sub-trees were being built on-disk.
-We then discovered a message board posting which stated that MongoDB does not currently support parallel writes to a database\cite{2} (except in a certain distributed database setup)\cite{3}.
-Given this, it would be virtually impossible to finish this extension.)
+We then discovered a message board posting which stated that MongoDB does not currently support parallel writes to a database\cite{2} (except in a certain distributed database setup\cite{3}).
+Given this, it would be virtually impossible to finish this extension.
 
-\subsection{Polygon Geospatial Search}
-Currently MongoDB has a fairly versatile 2D GeoSpatial search API.
-The user has the ability to create a 2D BTree index on any pair of numeric points.
-This 2D index can then be used to perform various geospatial oriented queries on the 
-points in the database. Queries can be performed for to obtain the all nearest points
-to any given point, you can also limit this query to only return those near within a specific distance.
+\subsection{Polygon Geo-spatial Search}
+Currently, MongoDB has a fairly versatile 2D Geo-spatial search API.
+The user has the ability to create a 2D B-Tree index on any pair of numeric points.
+This 2D index can then be used to perform various Geo-spatial oriented queries on the 
+points in the database. Queries can be performed to obtain the nearest points
+to any given point. You can also limit this query to only return those points near and within a specific distance.
 
-Other possible queris include a "\$within" operator which allows the user to query the database
-for any points within the bounds of a given circle or box bounds. When using these queries however it
-quickly becomes apparent that these predefined shapes do not provide enough functionality as the user needs.
+Other possible queries include a "\$within" operator which allows the user to query the database
+for any points within the bounds of a given circle or box. When using these queries, however, it
+quickly becomes apparent that these predefined shapes do not provide enough functionality for the user needs.
 
 One example of the circle and box filters not being flexible enough for every day use is the classifying of
-landmarks location to it's parent country. Typically the borders of nations can be classified as of concave polygons\footnote{Concave polygons are classified as polygons with an interior angle of more than 180 degree's}.
+landmark locations to their parent countries. Typically the borders of nations can be classified as concave polygons\footnote{Concave polygons are classified as polygons with an interior angle of more than 180 degrees}.
 If a MongoDB user was attempting to determine the nation a location or landmark lies in, it would be impossible for almost
-all conceivable nations. 
+any conceivable nation. 
 
 \begin{figure}[htb]
 \centering
-%\epsfig{file=ray.eps}
 \setlength\fboxsep{0.5pt}
 \setlength\fboxrule{0.5pt}
 \fbox{\includegraphics[trim = 25mm 50mm 25mm 25mm, clip, width=8cm]{map.jpg}}
-\caption{An example of possible GeoSpatial search polygons for the different parts of the United States.}
+\caption{An example of possible Geo-spatial search polygons for the different parts of the United States.}
 \end{figure}
  
-However if a filter existed that let the user define their own shape's a new level of flexibility could be 
-added to MongoDB's geo-spatial search capabilities. We chose to implement a n-point polygon filter.
+However, if a filter existed that let the user define their own shapes a new level of flexibility could be 
+added to MongoDB's Geo-spatial search capabilities. We chose to implement an n-point polygon filter.
 This enables a user to supply virtually any valid polygon as an augment to their "\$within" query and receive the correct results.
-This was done simply as a geo-spatial plugin, MongoDB has it's own geo-spatial frame work, implementing new filters is as 
-simple as creating a new class which inherits from the GeoBrows class.
+This was done simply as a Geo-spatial plugin--MongoDB has it's own Geo-spatial frame work, implementing new filters is as 
+simple as creating a new class which inherits from the GeoBrowse class.
 
 
 
-This new class GeoPolygonBrowse simply traverses the BTree using the GeoBrowse API and then returns
+The new class GeoPolygonBrowse simply traverses the B-Tree using the GeoBrowse API and then returns
 all points which are contained by the user supplied polygon. The algorithm for determining if a point 
-lies within the polygon is the common ray casting method. In this algorithm ray's are casted from left
-to right across the polygon, the number of times an intersection occurs is tracked. If the ray interest's an even number of 
-times the point is not contained within the polygon, an odd number means the point is contained.
+lies within the polygon is the common ray casting method. In this algorithm, rays are cast across the polygon,
+tracking the number of times an intersection occurs. 
+If the ray intersects the polygon an odd number of times, the point is contained within the
+polygon; it is otherwise not contained.
+
+
 \begin{figure}[htb]
 \centering
-%\epsfig{file=ray.eps}
 \setlength\fboxsep{0.5pt}
 \setlength\fboxrule{0.5pt}
 \fbox{\includegraphics[scale=0.80]{ray.png}}
@@ -270,15 +273,20 @@ db.find({loc:{"$within":{"$polygon":triangle}}})
 
 
 This feature has been submitted to the MongoDB project in the form
-of a "Pull requests" on the projects GitHub page. \cite{4}
-At the time of this writing they have acknowledged the patch, and have 
-emailed us with comments and suggestions for it's improvement. The MongoDB core team have
-asked us to make these changes and once they were complete the patch would be merged into 
-the official MongoDB project. We have been diligently making their suggested modifications
-and improving the patch, we hope to have it ready for resubmission within the next week.
+of a "pull requests" on the project's GitHub page\cite{4}.
+At the time of writing this paper, they have acknowledged the patch and have 
+emailed us with comments and suggestions for its improvement. The MongoDB core team has
+asked us to make these changes before they will consider merging our patch with the official MongoDB project. 
+We have been diligently making their suggested modifications
+and improving the patch, hoping to have it ready for resubmission within the next week.
 
 \subsection{Support for XPath-like Queries}
-XPath is a very common query syntax for Document based structures. Since MongoDB uses a document-oriented data structure (BSON) for its database, it is only logical that MongoDB support XPath-like queries. The first step in adding support for XPath-like queries was adding the ability to use wildcards for sub-objects in the document hierarchy. This allows for the user to search a document for specific child objects-or nodes, as they are referred to in XPath-without specifying all its ancestors. For example, if you had a database containing the entries
+XPath is a very common query syntax for Document based structures. Since MongoDB
+uses a document-oriented data structure (BSON) for its database, it is only logical
+that MongoDB support XPath-like queries. The first step in adding support for XPath-like
+queries was adding the ability to use wildcards for sub-objects in the document
+hierarchy. This allows for the user to search a document for specific child objects--or
+nodes, as they are referred to in XPath--without specifying all its ancestors. For example, if you had a database containing the entries
 
 \begin{lstlisting}
 
@@ -355,23 +363,23 @@ db.test.find("/zoo/animal/type['panda'] and /zoo/animal/gender[!='male']")
 \end{lstlisting}
 
 \subsection{User Authentication Verification}
-Currently in MongoDB user authentication has one small but very noticeable flaw in it's design.
-By default user authentication is disabled for all databases in MongoDB. However as soon as an administrator
-user is added to a database authentication is turned on for all currently connected and new sessions.
+Currently, in MongoDB, user authentication has one small but very noticeable flaw in its design: by
+default, user authentication is disabled for all databases. However, as soon as an administrator
+user is added to a database, authentication is turned on for all currently connected and new sessions.
 A new user is added from the mongo shell utility like so:
 \begin{lstlisting}
 
 db.addUser( user, password )
 \end{lstlisting}
 
-One can envision an situation where you are working on a database, executing queries
-or performing database maintenance. Your co-worker decides that the current database setup
-is far to insecure, so he adds a user to the database. Immediately, your maintenance queries
-start to fail and you're not sure why. In the current MongoDB design their is no way
+One can envision a situation in which you are working on a database, executing queries
+or performing database maintenance, when your co-worker decides that the current database setup
+is far too insecure. As a result, he adds an administrator user to the database.
+Immediately, your maintenance queries start to fail and you're not sure why. In the current MongoDB design their is no way
 to query if your session is authenticated to the database.
 
-To remedy this situation we introduced a new database query.
-The command, implemented as the following BSON query:
+To remedy this situation, we introduced a new database query.
+The command is implemented as the following BSON query:
 \begin{lstlisting}
 
 { "isauthorized" : 1 }
@@ -386,9 +394,9 @@ and returns a BSON object of the form:
 
 The query has optional parameters for the authentication mode you wish to query.
 A database can be authorized, authorized read only, and authorized for any
-of the several kinds of locks. For example you could be authorized to lock all
+of the several kinds of locks. For example, you could be authorized to lock all
 reads, or be authorized to only lock writes to the database.
-These parameters are passed along with the isauthorized command in a BSON query.
+These parameters are passed along with the isauthorized command in a BSON query, as shown below:
 \begin{lstlisting}
 
 { "isauthorized":1, "mode":"read" }
@@ -397,7 +405,7 @@ These parameters are passed along with the isauthorized command in a BSON query.
 \end{lstlisting}
 
 An accompanying mongo shell utility function was added as an easy
-interface to this feature. At a mongo shell you may simple use:
+interface to this feature. From a mongo shell you may simply use:
 \begin{lstlisting}
 
 > use test;
@@ -405,13 +413,26 @@ interface to this feature. At a mongo shell you may simple use:
 \end{lstlisting}
 
 This feature has been submitted to the MongoDB project in the form
-of a "Pull requests" on the projects GitHub page. \cite{4}
-At the time of this writing they have acknowledged the patch, but have
-neither accepted it or denied it. We are hopeful it will be included
+of a "pull request" on the project's GitHub page\cite{4}.
+At the time of writing this paper, they have acknowledged the patch, but have
+neither accepted it nor denied it. We are hopeful that it will be included
 in the project in the near future.
 
-\section{Thoughts And Conclusions }
-
+\section{Final Conclusion}
+While we were not able to finish all of the features we set out to implement as
+per our Phase 1 and Phase 2 proposals, we feel we did achieve some really good
+progress with the project. We were able to successfully implement n-point
+polygon Geo-spatial search, support for XPath-like queries, and user
+authentication verification. Through all the challenges we faced writing our
+additions to MongoDB we learned the importance of properly documenting and
+logically structuring your code. It was these challenges that ultimately lead
+to the inability to complete the first major feature we intended to implement:
+building indexes in parallel. Even though we were not able to complete the
+feature, we don't consider this to be a failure as it was a valuable learning
+experience. We now know that we should thoroughly research a topic before
+committing to it, exhausting all related resources. It wasn't until we were
+nearing the end of the project that we came upon a discussion involving
+MongoDB's head of concurrency which indicated that it would be impossible to parallelize index building as we had planned\cite{2}.
 \newpage
 %
 % The following two commands are all you need in the
