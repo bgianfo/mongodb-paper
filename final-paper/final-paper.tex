@@ -172,7 +172,7 @@ to JSON ( JavaScript Object Notation ).
 %{ "title":"Blog Post", "id":25, ... }
 %\end{lstlisting}
 The database kernel and the tools built for interacting with MongoDB are written in
-C++ and JavaScript. The kernel and tools heavily utilize object-oriented design patterns.
+C++. The kernel and tools heavily utilize object-oriented design patterns.
 However, the database embeds the Mozilla SpiderMonkey JavaScript engine.
 Using this engine, JavaScript code can be written, stored and executed on the database server; these
 operations are similar to stored procedures. MongoDB also has a specification for storing
@@ -236,7 +236,7 @@ any conceivable nation.
 \setlength\fboxsep{0.5pt}
 \setlength\fboxrule{0.5pt}
 \fbox{\includegraphics[trim = 25mm 50mm 25mm 25mm, clip, width=8cm]{map.jpg}}
-\caption{An example of possible Geo-spatial search polygons for the different parts of the United States.}
+\caption{An example of possible Geo-spatial search polygons for the different parts of the United States\cite{5}.}
 \end{figure}
  
 However, if a filter existed that let the user define their own shapes a new level of flexibility could be 
@@ -260,7 +260,7 @@ polygon; it is otherwise not contained.
 \setlength\fboxsep{0.5pt}
 \setlength\fboxrule{0.5pt}
 \fbox{\includegraphics[scale=0.80]{ray.png}}
-\caption{An example of a ray being cast across a polygon, computing the crossing number.}
+\caption{An example of a ray being cast across a polygon, computing the crossing number\cite{6}.}
 \end{figure}
 
 The final product is a new filter with the following syntax that supports 
@@ -315,7 +315,7 @@ This becomes increasingly beneficial as you develop larger and more complex data
   \item	The use of XPath slash notation (represents object hierarchy in terms of absolute paths)
   \item	A number of comparators (>, >=, =, <, <=, !=)
   \item	The 'or' and 'and' operators (expressed as ' or ', ' and ', |, \&\&)
-  \item	Returning indexed results-eliminating the need for Mongo's skip and limit functions in most cases
+  \item	Returning indexed results--eliminating the need for \\ Mongo's skip and limit functions in most cases
 \end{itemize}
 
 The greatest difficulties we faced with this part of the project was adding support for wildcard queries and finding the appropriate entry point for inserting our code to allow for, and convert from, XPath queries in the shell. Once we overcame these challenges, it was a simple matter of parsing the user's input.
