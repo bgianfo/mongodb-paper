@@ -213,19 +213,21 @@ Profiling indicated that this was happening before our attempt to merge the sub-
 We then discovered a message board posting which stated that MongoDB does not currently support parallel writes to a database\cite{2} (except in a certain distributed database setup)\cite{3}.
 Given this, it would be virtually impossible to finish this extension.)
 
-\subsection{Polygon Geospatial Seach}
-Currenlty MongoDB has a fairly versatile 2D GeoSpatial search API.
-The user has the ability to create a 2D BTree index on any numeric pair of points.
+\subsection{Polygon Geospatial Search}
+Currently MongoDB has a fairly versatile 2D GeoSpatial search API.
+The user has the ability to create a 2D BTree index on any pair of numeric points.
+This 2D index can then be used to perform various geospatial oriented queries on the 
+points in the database. Queries can be performed for to obtain the all nearest points
+to any given point, you can also limit this query to only return those near within a specific distance.
 
-\begin{figure}[htb]
-\centering
-%\epsfig{file=ray.eps}
-\setlength\fboxsep{0.5pt}
-\setlength\fboxrule{0.5pt}
-\fbox{\includegraphics[scale=0.80]{ray.png}}
-\caption{An example of a ray being cast across a polygon, computing the crossing number.}
-\end{figure}
- 
+Other possible queris include a "\$within" operator which allows the user to query the database
+for any points within the bounds of a given circle or box bounds. When using these queries however it
+quickly becomes apparent that these predefined shapes do not provide enough functionality as the user needs.
+
+One example of the circle and box filters not being flexible enough for every day use is the classifying of
+landmarks location to it's parent country. Typically the borders of nations can be classified as of concave polygons\footnote{Concave polygons are classified as polygons with an interior angle of more than 180 degree's}.
+If a MongoDB user was attempting to determine the nation a location or landmark lies in, it would be impossible for almost
+all conceivable nations. 
 
 \begin{figure}[htb]
 \centering
@@ -236,6 +238,45 @@ The user has the ability to create a 2D BTree index on any numeric pair of point
 \caption{An example of possible GeoSpatial search polygons for the different parts of the United States.}
 \end{figure}
  
+However if a filter existed that let the user define their own shape's a new level of flexibility could be 
+added to MongoDB's geo-spatial search capabilities. We chose to implement a n-point polygon filter.
+This enables a user to supply virtually any valid polygon as an augment to their "\$within" query and receive the correct results.
+This was done simply as a geo-spatial plugin, MongoDB has it's own geo-spatial frame work, implementing new filters is as 
+simple as creating a new class which inherits from the GeoBrows class.
+
+
+
+This new class GeoPolygonBrowse simply traverses the BTree using the GeoBrowse API and then returns
+all points which are contained by the user supplied polygon. The algorithm for determining if a point 
+lies within the polygon is the common ray casting method. In this algorithm ray's are casted from left
+to right across the polygon, the number of times an intersection occurs is tracked. If the ray interest's an even number of 
+times the point is not contained within the polygon, an odd number means the point is contained.
+\begin{figure}[htb]
+\centering
+%\epsfig{file=ray.eps}
+\setlength\fboxsep{0.5pt}
+\setlength\fboxrule{0.5pt}
+\fbox{\includegraphics[scale=0.80]{ray.png}}
+\caption{An example of a ray being cast across a polygon, computing the crossing number.}
+\end{figure}
+
+The final product is a new filter with the following syntax that supports 
+almost any n-point polygon the user could supply.
+\begin{lstlisting}
+triangle = [[0,0], [1,1], [0,2]];
+
+db.find({loc:{"$within":{"$polygon":triangle}}})
+\end{lstlisting}
+
+
+This feature has been submitted to the MongoDB project in the form
+of a "Pull requests" on the projects GitHub page. \cite{4}
+At the time of this writing they have acknowledged the patch, and have 
+emailed us with comments and suggestions for it's improvement. The MongoDB core team have
+asked us to make these changes and once they were complete the patch would be merged into 
+the official MongoDB project. We have been diligently making their suggested modifications
+and improving the patch, we hope to have it ready for resubmission within the next week.
+
 \subsection{Support for XPath-like Queries}
 XPath is a very common query syntax for Document based structures. Since MongoDB uses a document-oriented data structure (BSON) for its database, it is only logical that MongoDB support XPath-like queries. The first step in adding support for XPath-like queries was adding the ability to use wildcards for sub-objects in the document hierarchy. This allows for the user to search a document for specific child objects-or nodes, as they are referred to in XPath-without specifying all its ancestors. For example, if you had a database containing the entries
 
@@ -343,11 +384,11 @@ and returns a BSON object of the form:
 { "authorized" : boolean }
 \end{lstlisting}
 
-The query has optinal paramaters for the authentication mode you wish to query.
-A database can be authorized, authorized read only, and authrorized for any
+The query has optional parameters for the authentication mode you wish to query.
+A database can be authorized, authorized read only, and authorized for any
 of the several kinds of locks. For example you could be authorized to lock all
 reads, or be authorized to only lock writes to the database.
-These paramaters are passed along with the isauthorized command in a BSON query.
+These parameters are passed along with the isauthorized command in a BSON query.
 \begin{lstlisting}
 
 { "isauthorized":1, "mode":"read" }
@@ -355,7 +396,7 @@ These paramaters are passed along with the isauthorized command in a BSON query.
 { "isauthorized":1, "mode":"lock", "locktype":2 }
 \end{lstlisting}
 
-An occompanying mongo shell utility function was added as an easy
+An accompanying mongo shell utility function was added as an easy
 interface to this feature. At a mongo shell you may simple use:
 \begin{lstlisting}
 
@@ -365,7 +406,7 @@ interface to this feature. At a mongo shell you may simple use:
 
 This feature has been submitted to the MongoDB project in the form
 of a "Pull requests" on the projects GitHub page. \cite{4}
-At the time of this writting they have acknowledged the patch, but have
+At the time of this writing they have acknowledged the patch, but have
 neither accepted it or denied it. We are hopeful it will be included
 in the project in the near future.
 
