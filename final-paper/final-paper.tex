@@ -32,6 +32,7 @@
 \usepackage{color}
 \usepackage{verbatim}
 \usepackage{listings}
+\usepackage{graphicx}
 \lstset{
   language=C++,             % choose the language of the code
   basicstyle=\small,       % the size of the fonts that are used for the code
@@ -153,8 +154,12 @@ We describe our success's as well as our failures in our journey to improve this
 % links them together is there use of alternate query languages from SQL.}
 
 \section{Introduction}
-Our group has chosen to work on MongoDB for our Database Systems
-Implementation Project. MongoDB is a document oriented so-called NoSQL
+Our group has chosen to work on MongoDB 
+\footnote{MongoDB is an open source project which is produced by the 10gen corperation.
+          Development is done in the open and the company sells suport and infrastructure for profit. }
+          for our Database Systems
+Implementation Project. MongoDB is a document oriented so-called NoSQL 
+\footnote{ NoSQL is a relatively new term, which describes a family of databases that differ from the classical relational database managment system design and implementation. NoSQL databases are often schema-less and avoid join like operations for performance reasons }
 database system. MongoDB databases have no schemata and strive to give the user
 the fastest performance possible. Much of this is done through clustering/sharding
 and a focus on concurrent algorithms. MongoDB has a variety of very unique
@@ -162,10 +167,10 @@ features which set it apart from other NoSQL or document oriented databases.
 Instead of a traditional SQL syntax for interacting with the database, MongoDB uses
 a new format known as BSON (Binary JavaScript Object Notation) which is very similar
 to JSON ( JavaScript Object Notation ).
-\begin{lstlisting}
-
-{ "title":"Blog Post", "id":25, ... }
-\end{lstlisting}
+%\begin{lstlisting}
+%
+%{ "title":"Blog Post", "id":25, ... }
+%\end{lstlisting}
 The database kernel and the tools built for interacting with MongoDB are written in
 C++. The kernel and tools heavily utilize object oriented design patterns.
 However, the database embeds the Mozilla SpiderMonkey JavaScript engine.
@@ -212,6 +217,25 @@ Given this, it would be virtually impossible to finish this extension.)
 Currenlty MongoDB has a fairly versatile 2D GeoSpatial search API.
 The user has the ability to create a 2D BTree index on any numeric pair of points.
 
+\begin{figure}[htb]
+\centering
+%\epsfig{file=ray.eps}
+\setlength\fboxsep{0.5pt}
+\setlength\fboxrule{0.5pt}
+\fbox{\includegraphics[scale=0.80]{ray.png}}
+\caption{An example of a ray being cast across a polygon, computing the crossing number.}
+\end{figure}
+ 
+
+\begin{figure}[htb]
+\centering
+%\epsfig{file=ray.eps}
+\setlength\fboxsep{0.5pt}
+\setlength\fboxrule{0.5pt}
+\fbox{\includegraphics[trim = 25mm 50mm 25mm 25mm, clip, width=8cm]{map.jpg}}
+\caption{An example of possible GeoSpatial search polygons for the different parts of the United States.}
+\end{figure}
+ 
 \subsection{Support for XPath-like Queries}
 XPath is a very common query syntax for Document based structures. Since MongoDB uses a document-oriented data structure (BSON) for its database, it is only logical that MongoDB support XPath-like queries. The first step in adding support for XPath-like queries was adding the ability to use wildcards for sub-objects in the document hierarchy. This allows for the user to search a document for specific child objects-or nodes, as they are referred to in XPath-without specifying all its ancestors. For example, if you had a database containing the entries
 
@@ -345,6 +369,8 @@ At the time of this writting they have acknowledged the patch, but have
 neither accepted it or denied it. We are hopeful it will be included
 in the project in the near future.
 
+\section{Thoughts And Conclusions }
+
 \newpage
 %
 % The following two commands are all you need in the
@@ -363,5 +389,4 @@ in the project in the near future.
 \balancecolumns
 % That's all folks!
 
-\section{Thoughts And Conclusions }
 \end{document}

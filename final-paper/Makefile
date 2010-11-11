@@ -1,4 +1,4 @@
-LATEX=latex
+LATEX=pdflatex
 BIBTEX=bibtex
 CONVERT_DVI=dvipdf
 
@@ -21,7 +21,7 @@ final-paper: final-paper.tex
 	$(BIBTEX) final-paper
 	$(LATEX)  final-paper
 	$(LATEX)  final-paper
-	$(CONVERT_DVI) final-paper.dvi
+	#$(CONVERT_DVI) final-paper.dvi
 	$(VIEWER) final-paper.pdf
 
 paper-clean:
